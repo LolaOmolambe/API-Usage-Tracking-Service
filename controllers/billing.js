@@ -1,14 +1,19 @@
 const Billing = require("../models/billing");
 const { errorResponse, successResponse } = require("../helpers/responseBody");
+const queryHelpers = require("../helpers/queryHelper");
 
 exports.getAllBillingData = async (req, res, next) => {
   try {
-    let billing = await Billing.find().sort({ createdAt: "descending" });
+    let billingQuery = new queryHelpers(Billing.find(), req.query)
+      .filter()
+      .paginate();
+    let billings = await billingQuery.query;
+
     return successResponse(
       res,
       200,
       "Billing Data fetched successfully",
-      billing
+      billings
     );
   } catch (err) {
     return errorResponse(res, 500, "Oops, Something went wrong", err);
@@ -33,12 +38,6 @@ exports.getBillingDataByDate = async (req, res, next) => {
       },
     }).sort({ createdAt: "descending" });
 
-    // const billings = await Billing.find({
-    //   createdAt: {
-    //     $gte: new Date(new Date(startDate).setHours(00, 00, 00)),
-    //     $lt: new Date(new Date(endDate).setHours(23, 59, 59)),
-    //   },
-    // }).sort({ createdAt: "descending" });
 
     return successResponse(
       res,
@@ -53,7 +52,6 @@ exports.getBillingDataByDate = async (req, res, next) => {
 
 exports.getBillingDataUser = async (req, res, next) => {
   try {
-    //Get paid and unpaid
     let billing = await Billing.find({ clientId: req.params.clientId });
     return successResponse(
       res,

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const userSchema = mongoose.Schema(
   {
@@ -83,13 +84,6 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-// userSchema.pre(/^find/, function(next) {
-
-//   //Only get active users
-//     this.find({isActive: true});
-//     next();
-//  });
-
 userSchema.methods.correctPassword = async function (
   inputPassword,
   userPassword
@@ -97,5 +91,16 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(inputPassword, userPassword);
 };
 
+userSchema.methods.createPasswordToken = function () {
+  let token = crypto.randomBytes(32).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  this.passwordResetExpires = Date.now() + (15*60*1000);
+
+  return token;
+};
 
 module.exports = mongoose.model("User", userSchema);

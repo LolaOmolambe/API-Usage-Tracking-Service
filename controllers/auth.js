@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { errorResponse, successResponse } = require("../helpers/responseBody");
 
@@ -93,9 +94,76 @@ exports.protectRoutes = async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return errorResponse(res, 403, "Not authorized to perform this action", null);
+      return errorResponse(
+        res,
+        403,
+        "Not authorized to perform this action",
+        null
+      );
     }
     next();
   };
 };
 
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    //Find the User
+    let user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      return errorResponse(res, 404, "User not found", null);
+    }
+
+    //Generate the reset token
+    let resetToken = user.createPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    return successResponse(
+      res,
+      200,
+      "Token generated successfully. Please initiate resetPassword endpoint with this token",
+      {resetToken}
+    );
+  } catch (err) {
+    return errorResponse(res, 500, "Opps, Something went wrong", err);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    let { token, password, passwordConfirm } = req.body;
+
+    if (!token) {
+      return errorResponse(res, 400, "Token is empty", null);
+    }
+    if (password != passwordConfirm) {
+      return errorResponse(res, 400, "Password mismatch", null);
+    }
+    let hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    let user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return errorResponse(
+        res,
+        404,
+        "Token is invalid or has expired. Initiate Forgot password again",
+        null
+      );
+    }
+
+    user.password = password;
+    user.passwordConfirm = passwordConfirm;
+    user.passwordResetExpires = undefined;
+    user.passwordResetToken = undefined;
+
+    await user.save();
+
+    return successResponse(res, 200, "Password successfully changed", null);
+  } catch (err) {
+    return errorResponse(res, 500, "Opps, Something went wrong", err);
+  }
+};
