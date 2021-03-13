@@ -5,7 +5,7 @@
 
 
 ## Getting Started
-- Clone the master repository to access all files
+- Run ```git clone https://github.com/LolaOmolambe/API-Usage-Tracking-Service.git``` to clone the repo to your directory
 - Run ``` npm install ``` to install all required dependencies.
 - Run ```npm run test``` to test files
 - Run ```npm start``` to get the project running
