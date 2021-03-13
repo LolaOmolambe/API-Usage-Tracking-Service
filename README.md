@@ -1,6 +1,7 @@
 # API Usage Tracking Service
 
 - A billing service for a company to track usage of it’s APIs and prepare a monthly bill for customers.
+- A scheduler prepares the billing when applicable every day at 11:59 PM using Node-Cron Package
 - API DOCS - https://documenter.getpostman.com/view/12464626/Tz5qZxD5  <br />
 
 
