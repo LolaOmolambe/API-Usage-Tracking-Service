@@ -28,10 +28,17 @@ exports.getBillingDataByDate = async (req, res, next) => {
     }
     const billings = await Billing.find({
       createdAt: {
-        $gte: new Date(new Date(startDate).setHours(00, 00, 00)),
-        $lt: new Date(new Date(endDate).setHours(23, 59, 59)),
+        $gte: new Date(new Date(startDate)),
+        $lt: new Date(new Date(endDate)),
       },
     }).sort({ createdAt: "descending" });
+
+    // const billings = await Billing.find({
+    //   createdAt: {
+    //     $gte: new Date(new Date(startDate).setHours(00, 00, 00)),
+    //     $lt: new Date(new Date(endDate).setHours(23, 59, 59)),
+    //   },
+    // }).sort({ createdAt: "descending" });
 
     return successResponse(
       res,

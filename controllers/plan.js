@@ -23,7 +23,7 @@ exports.getPlans = async (req, res, next) => {
   try {
     let plans = await Plan.find().sort({ createdAt: "descending" });
 
-    return successResponse(res, 201, "Plans fetched successfully", plans);
+    return successResponse(res, 200, "Plans fetched successfully", plans);
   } catch (err) {
     return errorResponse(res, 500, "Fetching products failed!", err);
   }
